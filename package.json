@@ -1,0 +1,16 @@
+{
+  "name": "whatsapp-backend",
+  "version": "1.0.0",
+  "description": "WhatsApp Backend with Flask and AI integration",
+  "private": true,
+  "scripts": {
+    "start": "cd backend && python main.py",
+    "build": "echo 'This is a Python Flask application. Use: cd backend && python main.py'",
+    "dev": "cd backend && python main.py",
+    "install-deps": "cd backend && pip install -r requirements.txt",
+    "test": "cd backend && python -m pytest tests/"
+  },
+  "keywords": ["whatsapp", "flask", "ai", "backend"],
+  "author": "",
+  "license": "ISC"
+}

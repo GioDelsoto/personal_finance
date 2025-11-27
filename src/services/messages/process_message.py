@@ -1,18 +1,16 @@
-from FastAPI import Depends
-from src.schemas.messages.receive_messages import ReceivedMessage
+from src.schemas.messages.received_messages import ReceivedMessage
 from src.schemas.messages.chat_messages import ChatMessage
 from uuid import UUID
 from typing import Optional, List
+from src.message_processors.processors import NormalChatProcessor, AddExpenseProcessor
 
-
-class MessageWorker:
+class MessageProcessor:
     def __init__(self):
         pass
 
     def process_message(self, Message: ReceivedMessage, session_id: UUID, user: dict):
         
         #Recebe a mensagem
-
         #Pega o histórico da conversa
         chat_history = self.get_message_history(session_id)
 
@@ -22,7 +20,7 @@ class MessageWorker:
 
         message_processor = self.factory_get_processor(message_route)
 
-        message_processor.process(Message, session_id, user)
+        message_processor.process_message(Message, chat_history, user)
         message_processor.save_message(Message, session_id, user)
         message_processor.update_chat_history_cache(session_id, Message)
         #Retorna uma resposta apropriada
@@ -81,11 +79,19 @@ class MessageWorker:
 
         if route == 'normal_chat':
             return NormalChatProcessor()
-        elif route == 'report_status':
-            return ReportStatusProcessor()
+        #elif route == 'report_status':
+        #    return ReportStatusProcessor()
         elif route == 'add_expense':
             return AddExpenseProcessor()
-        elif route == 'analytics':
-            return AnalyticsProcessor()
+        #elif route == 'analytics':
+        #    return AnalyticsProcessor()
         else:
-            return UnknownProcessor()
+            return None #UnknownProcessor()
+        
+    def save_message(self, message: ReceivedMessage, session_id: UUID, user: dict):
+        # TODO: Implement saving message to database
+        pass
+
+    def update_chat_history_cache(self, session_id: UUID, message: ReceivedMessage):
+        # TODO: Implement updating chat history cache
+        pass

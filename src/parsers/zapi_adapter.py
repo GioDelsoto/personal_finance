@@ -1,5 +1,6 @@
-from src.schemas.messages.receive_messages import ReceivedMessage
+from src.schemas.messages.received_messages import ReceivedMessage
 from src.schemas.messages.received_messages_zapi import WhatsAppMessageZapi
+
 
 class ZapiReceivedMessageAdapter:
     def parse_request(self, data: dict) -> ReceivedMessage:

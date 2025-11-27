@@ -1,56 +1,50 @@
-import sys
-import os
-
-from FastAPI import FastAPI, Request, APIRouter, HTTPException
-from src.utils.phone_formatter import format_phone_number
-import time
+from fastapi import APIRouter, Request, HTTPException, status, Depends
+from pydantic import ValidationError
+from src.parsers.interface_received_message_adapter import InterfaceReceivedMessageAdapter
+from src.dependencies.messages import get_message_parser, get_messages_controller
 import logging
 
-from src.middleware.authorization_service import AuthorizationService
-from src.parsers.interface_received_message_adapter import InterfaceReceivedMessageAdapter
-
-
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
+
 @router.post("/receive_whatsapp_message")
-async def receive_whatsapp_message(request: Request): 
+async def receive_whatsapp_message(
+    request: Request,
+    parser: InterfaceReceivedMessageAdapter = Depends(get_message_parser),
+    controller = Depends(get_messages_controller)
+):
     """Webhook para receber mensagens do WhatsApp"""
     try:
-        data = request.json
-
-        parser 
-
-        #Authentication and Services Initialization
-
-        #Session Management
+        # Recebe request raw
+        data = await request.json()
         
-
-        user = session['user']
-        session_id = session['session_id']
-        if not user:
-            unauthorized_message = "You are not registered client. Access www.website.com to have access to your Elite Coach"
-            zapi_client.send_message(phone, unauthorized_message)
-            return jsonify({"status": "unauthorized", "message": "User not authorized"}), 200
-
-        # Message type and extraction
-        message_type, processing_data = MessageTypeHandler.detect_and_extract(data)
-        processing_data['phone'] = phone  # Ensure phone is set
-
-        # Process message
-        start_time = time.time()
-        response_text = message_processor.process(message_type, processing_data, user, session_id, 'whatsapp', db_client, redis_client)
-        processing_time = time.time() - start_time
-
-        # Send and save response
-        success = response_sender.send_and_save(user, response_text, session_id, 'whatsapp')
-
-        return jsonify({
-            "status": "success",
-            "sent": success,
-            "message_id": processing_data.get('message_id', ''),
-            "processing_time": f"{processing_time:.2f}s"
-        }), 200
-
+        # Parser: transforma request em ReceivedMessage
+        try:
+            received_message = parser.parse_request(data)
+        except ValidationError as e:
+            logger.error(f"Validation error parsing request: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid request format: {str(e)}"
+            )
+        except Exception as e:
+            logger.error(f"Error parsing request: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Failed to parse request: {str(e)}"
+            )
+        
+        # Controller: processa mensagem
+        result = controller.message_controller(received_message)
+        
+        return result
+    
+    except HTTPException:
+        raise
     except Exception as e:
-        print(f"Erro no webhook: {str(e)}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+        logger.error(f"Unexpected error in webhook: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error"
+        )

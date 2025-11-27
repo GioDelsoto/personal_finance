@@ -1,16 +1,35 @@
-from FastAPI import Depends
-from src.dependencies.messages import get_incoming_message_handler
-from src.schemas.messages.receive_messages import ReceivedMessage
+from uuid import uuid4
+from src.schemas.messages.received_messages import ReceivedMessage
+from src.services.messages.income_message_handler import IncomingMessageHandler
+
 
 class MessagesController:
-    def message_controller(self, message: ReceivedMessage, income_message_processor = Depends(get_incoming_message_handler)):
-
-        user = retrieve_user(message.phone)
-        if not user:
-            return 'User not found', 404
-
-        session = retrieve_or_create_session(user)
-
-        income_message_processor.handle_incoming_message(message, session, user)
+    def __init__(self, income_message_handler: IncomingMessageHandler):
+        # Recebe handler via dependency injection
+        self.income_message_handler = income_message_handler
+    
+    def message_controller(self, message: ReceivedMessage):
+        """
+        Processa mensagem recebida:
+        1. Busca/cria usuário (TODO)
+        2. Busca/cria sessão (TODO)
+        3. Enfileira mensagem para processamento assíncrono
+        """
+        # TODO: Implementar busca de usuário real
+        # user = retrieve_user(message.phone)
+        # if not user:
+        #     raise HTTPException(status_code=404, detail="User not found")
+        user = {"id": "temp-user", "name": "Temp User"}
         
-        return {"status": "message added to queue"}, 200
+        # TODO: Implementar sessão real
+        # session = retrieve_or_create_session(user)
+        session_id = uuid4()
+        
+        # Enfileira mensagem
+        result = self.income_message_handler.handle_incoming_message(
+            message, 
+            session_id, 
+            user
+        )
+        
+        return result

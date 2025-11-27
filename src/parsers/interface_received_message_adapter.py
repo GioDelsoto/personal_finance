@@ -1,5 +1,5 @@
 from typing import Protocol
-from src.schemas.messages.receive_messages import ReceivedMessage
+from src.schemas.messages.received_messages import ReceivedMessage
 
 class InterfaceReceivedMessageAdapter(Protocol):
     """Interface for parsing received messages from different WhatsApp API providers."""

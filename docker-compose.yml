@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: personal_finance_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: project_db
+    ports:
+      - "5431:5431"
+    volumes:
+      - postgres_personal_finance_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: personal_finance_redis
+    ports:
+      - "6378:6379"  # host 6378 → container 6379
+    volumes:
+      - redis_personal_finance_data:/data
+    command: redis-server --appendonly yes
+    restart: unless-stopped
+
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: personal_finance_redis_commander
+    environment:
+      - REDIS_HOSTS=local:redis:6379
+    ports:
+      - "8081:8081"
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+volumes:
+  postgres_personal_finance_data:
+  redis_personal_finance_data:

@@ -1,5 +1,5 @@
-from whatsapp_routes import router as whatsapp_router
-from fastapi import FastAPI, APIRouter
+from fastapi import APIRouter
+from src.routes.whatsapp_routes import router as whatsapp_router
 
 
 router = APIRouter()
